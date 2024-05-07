@@ -68,6 +68,7 @@
 #include "private/qmath_p.h"
 
 #include "float.h"
+#include <cmath>
 
 QT_BEGIN_NAMESPACE
 
@@ -630,15 +631,10 @@ static qreal toDouble(const QChar *&str)
         if (neg)
             val = -val;
     } else {
-#if defined(Q_WS_QWS) && !defined(Q_OS_VXWORKS)
-        if(sizeof(qreal) == sizeof(float))
-            val = strtof(temp, 0);
-        else
-#endif
-        {
-            bool ok = false;
-            val = qstrtod(temp, 0, &ok);
-        }
+        val = QByteArray::fromRawData(temp, pos).toDouble();
+        // Do not tolerate values too wild to be represented normally by floats
+        if (std::fpclassify(float(val)) != FP_NORMAL)
+            val = 0;
     }
     return val;
 
@@ -2945,6 +2941,8 @@ static QSvgStyleProperty *createRadialGradientNode(QSvgNode *node,
         ncy = toDouble(cy);
     if (!r.isEmpty())
         nr = toDouble(r);
+    if (nr < 0.5)
+        nr = 0.5;
 
     qreal nfx = ncx;
     if (!fx.isEmpty())

@@ -314,9 +314,9 @@ int main(int argc, char **argv)
             parseHandler.verbose = evalHandler.verbose = cd.isVerbose();
             ProFileOption option;
 #ifdef QT_BOOTSTRAPPED
-            option.initProperties(binDir + QLatin1String("/qmake"));
+            option.initProperties(binDir + QLatin1String("/qmake-qt4"));
 #else
-            option.initProperties(app.applicationDirPath() + QLatin1String("/qmake"));
+            option.initProperties(app.applicationDirPath() + QLatin1String("/qmake-qt4"));
 #endif
             ProFileParser parser(0, &parseHandler);
             ProFileEvaluator visitor(&option, &parser, &evalHandler);

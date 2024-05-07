@@ -770,7 +770,7 @@ int main(int argc, char **argv)
 
         parseHandler.verbose = evalHandler.verbose = !!(options & Verbose);
         ProFileOption option;
-        option.initProperties(app.applicationDirPath() + QLatin1String("/qmake"));
+        option.initProperties(app.applicationDirPath() + QLatin1String("/qmake-qt4"));
         option.setCommandLineArguments(QStringList() << QLatin1String("CONFIG+=lupdate_run"));
         ProFileParser parser(0, &parseHandler);
 

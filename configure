@@ -3331,6 +3331,9 @@ arm*)
     CFG_ARCH=arm
     COMPAT_ARCH=armv6
     ;;
+mips*)
+    CFG_ARCH=mips
+    ;;
 esac
 
 if [ -d "$relpath/src/corelib/arch/$CFG_ARCH" ]; then

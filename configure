@@ -7742,18 +7742,6 @@ case "$XPLATFORM" in
 	canBuildQtXmlPatterns="no"
 	;;
     *-g++*)
-	# Check gcc's version
-	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
-	    5*|4*|3.4*)
-		;;
-            3.3*)
-                canBuildWebKit="no"
-                ;;
-	    *)
-		canBuildWebKit="no"
-		canBuildQtXmlPatterns="no"
-		;;
-	esac
 	;;
     solaris-cc*)
         # Check the compiler version
@@ -8053,19 +8041,7 @@ g++*)
         ;;
     esac
 
-    case "$COMPILER_VERSION" in
-    2.95.*)
-        COMPILER_VERSION="2.95.*"
-        ;;
-    3.*)
-        COMPILER_VERSION="3.*"
-        ;;
-    5*|4.*)
-        COMPILER_VERSION="4"
-        ;;
-    *)
-        ;;
-    esac
+    COMPILER_VERSION="4"
     [ '!' -z "$COMPILER_VERSION" ] && COMPILER="g++-${COMPILER_VERSION}"
     ;;
 icc*)

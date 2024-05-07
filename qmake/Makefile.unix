@@ -3,7 +3,7 @@ BUILD_PATH = @BUILD_PATH@
 QTOBJS = @QMAKE_QTOBJS@
 QTSRCS = @QMAKE_QTSRCS@
 QMAKESPEC = @QMAKESPEC@
-LFLAGS = @QMAKE_LFLAGS@
+LFLAGS = @QMAKE_LFLAGS@ $(QMAKE_LFLAGS_RELEASE)
 
 #qmake code
 OBJS=project.o property.o main.o makefile.o unixmake2.o unixmake.o  \

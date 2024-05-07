@@ -34,6 +34,3 @@ MOCDIR = .moc
 
 *-g++*: QMAKE_CXXFLAGS += -fno-strict-aliasing
 
-CONFIG -= separate_debug_info
-CONFIG += no_debug_info
-

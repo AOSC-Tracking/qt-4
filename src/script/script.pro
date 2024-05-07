@@ -91,6 +91,9 @@ symbian {
     TARGET.UID3=0x2001B2E1
 }
 
+# hack around gcc8 optimization bug with -O2
+QMAKE_CXXFLAGS_RELEASE += -O1
+
 symbian {
     symbian-abld|symbian-sbsv2 {
         MMP_RULES += ALWAYS_BUILD_AS_ARM

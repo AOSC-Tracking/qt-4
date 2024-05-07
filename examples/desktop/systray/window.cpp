@@ -158,15 +158,23 @@ void Window::createIconGroupBox()
     iconComboBox->addItem(QIcon(":/images/bad.svg"), tr("Bad"));
     iconComboBox->addItem(QIcon(":/images/heart.svg"), tr("Heart"));
     iconComboBox->addItem(QIcon(":/images/trash.svg"), tr("Trash"));
+    iconComboBox->addItem(QIcon::fromTheme("system-file-manager"), tr("File Manager"));
 
     showIconCheckBox = new QCheckBox(tr("Show icon"));
     showIconCheckBox->setChecked(true);
+
+#if defined(Q_WS_X11)
+    jitToolTipCheckBox = new QCheckBox(tr("Just In Time Tooltip"));
+#endif
 
     QHBoxLayout *iconLayout = new QHBoxLayout;
     iconLayout->addWidget(iconLabel);
     iconLayout->addWidget(iconComboBox);
     iconLayout->addStretch();
     iconLayout->addWidget(showIconCheckBox);
+#if defined(Q_WS_X11)
+    iconLayout->addWidget(jitToolTipCheckBox);
+#endif
     iconGroupBox->setLayout(iconLayout);
 }
 
@@ -254,5 +262,37 @@ void Window::createTrayIcon()
     trayIconMenu->addAction(quitAction);
 
     trayIcon = new QSystemTrayIcon(this);
+    QByteArray category = qgetenv("SNI_CATEGORY");
+    if (!category.isEmpty()) {
+        trayIcon->setProperty("_qt_sni_category", QString::fromLocal8Bit(category));
+    }
     trayIcon->setContextMenu(trayIconMenu);
+
+#if defined(Q_WS_X11)
+    trayIcon->installEventFilter(this);
+#endif
 }
+
+#if defined(Q_WS_X11)
+bool Window::eventFilter(QObject *, QEvent *event)
+{
+    switch(event->type()) {
+    case QEvent::ToolTip:
+        if (jitToolTipCheckBox->isChecked()) {
+            QString timeString = QTime::currentTime().toString();
+            trayIcon->setToolTip(tr("Current Time: %1").arg(timeString));
+        }
+        break;
+    case QEvent::Wheel: {
+        QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
+        int delta = wheelEvent->delta() > 0 ? 1 : -1;
+        int index = (iconComboBox->currentIndex() + delta) % iconComboBox->count();
+        iconComboBox->setCurrentIndex(index);
+        break;
+    }
+    default:
+        break;
+    }
+    return false;
+}
+#endif

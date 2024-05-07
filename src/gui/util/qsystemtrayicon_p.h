@@ -62,10 +62,17 @@
 #include "QtGui/qpixmap.h"
 #include "QtCore/qstring.h"
 #include "QtCore/qpointer.h"
+#if defined(Q_WS_X11)
+#include "QtCore/qset.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
+#if defined(Q_WS_X11)
+class QAbstractSystemTrayIconSys;
+#else
 class QSystemTrayIconSys;
+#endif
 class QToolButton;
 class QLabel;
 
@@ -75,6 +82,9 @@ class QSystemTrayIconPrivate : public QObjectPrivate
 
 public:
     QSystemTrayIconPrivate() : sys(0), visible(false) { }
+    #if defined(Q_WS_X11)
+    ~QSystemTrayIconPrivate();
+    #endif
 
     void install_sys();
     void remove_sys();
@@ -90,7 +100,11 @@ public:
     QPointer<QMenu> menu;
     QIcon icon;
     QString toolTip;
+    #if defined(Q_WS_X11)
+    QAbstractSystemTrayIconSys *sys;
+    #else
     QSystemTrayIconSys *sys;
+    #endif
     bool visible;
 };
 
@@ -123,60 +137,37 @@ private:
 };
 
 #if defined(Q_WS_X11)
-QT_BEGIN_INCLUDE_NAMESPACE
-#include <QtCore/qcoreapplication.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-QT_END_INCLUDE_NAMESPACE
+class QSystemTrayIconSysFactoryInterface;
 
-class QSystemTrayIconSys : public QWidget
+/**
+ * This class acts as a composite QSystemTrayIconSysFactory: It can create
+ * instances of QAbstractSystemTrayIconSys* using either a plugin or the
+ * builtin factory and will cause QSystemTrayIconPrivate to recreate their
+ * 'sys' instances if the plugin availability changes.
+ */
+class QSystemTrayIconSysFactory : public QObject
 {
-    friend class QSystemTrayIconPrivate;
-
+    Q_OBJECT
 public:
-    QSystemTrayIconSys(QSystemTrayIcon *q);
-    ~QSystemTrayIconSys();
-    enum {
-        SYSTEM_TRAY_REQUEST_DOCK = 0,
-        SYSTEM_TRAY_BEGIN_MESSAGE = 1,
-        SYSTEM_TRAY_CANCEL_MESSAGE =2
-    };
+    QSystemTrayIconSysFactory();
+    void registerSystemTrayIconPrivate(QSystemTrayIconPrivate *iconPrivate);
+    void unregisterSystemTrayIconPrivate(QSystemTrayIconPrivate *iconPrivate);
 
-    void addToTray();
-    void updateIcon();
-    XVisualInfo* getSysTrayVisualInfo();
+    QAbstractSystemTrayIconSys *create(QSystemTrayIcon *) const;
 
-    // QObject::event is public but QWidget's ::event() re-implementation
-    // is protected ;(
-    inline bool deliverToolTipEvent(QEvent *e)
-    { return QWidget::event(e); }
+    bool isAvailable() const;
 
-    static Window sysTrayWindow;
-    static QList<QSystemTrayIconSys *> trayIcons;
-    static QCoreApplication::EventFilter oldEventFilter;
-    static bool sysTrayTracker(void *message, long *result);
-    static Window locateSystemTray();
-    static Atom sysTraySelection;
-    static XVisualInfo sysTrayVisual;
-
-protected:
-    void paintEvent(QPaintEvent *pe);
-    void resizeEvent(QResizeEvent *re);
-    bool x11Event(XEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-#ifndef QT_NO_WHEELEVENT
-    void wheelEvent(QWheelEvent *event);
-#endif
-    bool event(QEvent *e);
+private Q_SLOTS:
+    void refreshTrayIconPrivates();
 
 private:
-    QPixmap background;
-    QSystemTrayIcon *q;
-    Colormap colormap;
+    QSystemTrayIconSysFactoryInterface *factory() const;
+    void loadPluginFactory();
+
+    QSystemTrayIconSysFactoryInterface *pluginFactory;
+    QSet<QSystemTrayIconPrivate *> trayIconPrivates;
 };
-#endif // Q_WS_X11
+#endif
 
 QT_END_NAMESPACE
 

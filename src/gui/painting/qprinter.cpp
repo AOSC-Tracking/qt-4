@@ -806,7 +806,7 @@ void QPrinter::setPrinterName(const QString &name)
     if(d->use_default_engine
         && d->outputFormat == QPrinter::NativeFormat) {
         if (QCUPSSupport::cupsVersion() >= 10200
-            && QCUPSSupport::printerHasPPD(name.toLocal8Bit().constData()))
+            && QCUPSSupport().printerHasPPD(name.toLocal8Bit().constData()))
             setOutputFormat(QPrinter::PdfFormat);
         else
             setOutputFormat(QPrinter::PostScriptFormat);

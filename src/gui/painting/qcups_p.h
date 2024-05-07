@@ -92,7 +92,7 @@ public:
 
     QStringList options() const;
 
-    static bool printerHasPPD(const char *printerName);
+    bool printerHasPPD(const char *printerName);
 
     QString unicodeString(const char *s);
 

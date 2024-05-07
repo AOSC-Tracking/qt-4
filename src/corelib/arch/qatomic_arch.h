@@ -94,6 +94,8 @@ QT_BEGIN_HEADER
 #  include "QtCore/qatomic_sh4a.h"
 #elif defined(QT_ARCH_NACL)
 #  include "QtCore/qatomic_generic.h"
+#elif defined(QT_ARCH_AARCH64)
+#  include "QtCore/qatomic_aarch64.h"
 #else
 #  error "Qt has not been ported to this architecture"
 #endif

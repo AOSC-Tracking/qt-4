@@ -63,6 +63,12 @@ contains (CONFIG, text_breaking_with_icu) {
     DEFINES += WTF_USE_QT_ICU_TEXT_BREAKING=1
 }
 
+# Hack around AARCH64 fail wrt JSValue.h
+equals(QT_ARCH, aarch64) {
+    message("JavaScriptCore aarch64 hack: -fpermissive")
+    QMAKE_CXXFLAGS += -fpermissive
+}
+
 wince* {
     INCLUDEPATH += $$QT_SOURCE_TREE/src/3rdparty/ce-compat
     INCLUDEPATH += $$PWD/../JavaScriptCore/os-win32

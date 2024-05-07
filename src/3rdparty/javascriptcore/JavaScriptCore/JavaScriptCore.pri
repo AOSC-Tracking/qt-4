@@ -66,6 +66,12 @@ contains(JAVASCRIPTCORE_JIT,no) {
     }
 }
 
+# Hack around AARCH64 fail wrt JSValue.h
+equals(QT_ARCH, aarch64) {
+    message("JavaScriptCore aarch64 hack: -fpermissive")
+    QMAKE_CXXFLAGS += -fpermissive
+}
+
 wince* {
     INCLUDEPATH += $$QT_SOURCE_TREE/src/3rdparty/ce-compat
     SOURCES += $$QT_SOURCE_TREE/src/3rdparty/ce-compat/ce_time.c

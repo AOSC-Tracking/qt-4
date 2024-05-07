@@ -208,16 +208,11 @@ void QLocalServerPrivate::_q_onNewConnection()
 
 void QLocalServerPrivate::waitForNewConnection(int msec, bool *timedOut)
 {
-    fd_set readfds;
-    FD_ZERO(&readfds);
-    FD_SET(listenSocket, &readfds);
+    struct pollfd fd;
+    fd.fd = listenSocket;
+    fd.events = POLLIN;
 
-    timeval timeout;
-    timeout.tv_sec = msec / 1000;
-    timeout.tv_usec = (msec % 1000) * 1000;
-
-    int result = -1;
-    result = qt_safe_select(listenSocket + 1, &readfds, 0, 0, (msec == -1) ? 0 : &timeout);
+    int result = qt_safe_poll(&fd, 1, msec);
     if (-1 == result) {
         setError(QLatin1String("QLocalServer::waitForNewConnection"));
         closeServer();

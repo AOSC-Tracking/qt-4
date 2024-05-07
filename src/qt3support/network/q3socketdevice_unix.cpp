@@ -68,6 +68,7 @@ static inline int qt_socket_socket(int domain, int type, int protocol)
 #endif
 
 #include "q3socketdevice.h"
+#include "private/qcore_unix_p.h"
 
 #ifndef QT_NO_NETWORK
 
@@ -588,19 +589,10 @@ Q_LONG Q3SocketDevice::waitForMore( int msecs, bool *timeout ) const
 {
     if ( !isValid() )
 	return -1;
-    if ( fd >= FD_SETSIZE )
-	return -1;
 
-    fd_set fds;
-    struct timeval tv;
-
-    FD_ZERO( &fds );
-    FD_SET( fd, &fds );
-
-    tv.tv_sec = msecs / 1000;
-    tv.tv_usec = (msecs % 1000) * 1000;
-
-    int rv = select( fd+1, &fds, 0, 0, msecs < 0 ? 0 : &tv );
+    pollfd pfd;
+    pfd.fd = fd;
+    int rv = qt_safe_poll(&pfd, 1, msecs, /* retry_eintr */ false);
 
     if ( rv < 0 )
 	return -1;

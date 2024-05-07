@@ -345,8 +345,41 @@ static inline pid_t qt_safe_waitpid(pid_t pid, int *status, int options)
 
 timeval qt_gettime(); // in qelapsedtimer_mac.cpp or qtimestamp_unix.cpp
 
+// Deprecated due to FD_SETSIZE limitation, use qt_safe_poll instead.
 Q_CORE_EXPORT int qt_safe_select(int nfds, fd_set *fdread, fd_set *fdwrite, fd_set *fdexcept,
                                  const struct timeval *tv);
+
+#ifndef Q_OS_VXWORKS
+#include <poll.h>
+#else
+
+// Poll emulation for VxWorks.
+
+struct pollfd {
+  int fd;
+  short events;
+  short revents;
+};
+
+#define POLLIN 1
+#define POLLOUT 2
+#define POLLERR 4
+#define POLLHUP 8
+#define POLLNVAL 16
+#endif
+
+inline bool qt_readable(const pollfd &fd)
+{
+  return fd.fd >= 0 && (fd.revents & (POLLIN | POLLHUP | POLLERR | POLLNVAL)) != 0;
+}
+
+inline bool qt_writable(const pollfd &fd)
+{
+  return fd.fd >= 0 && (fd.revents & (POLLOUT | POLLHUP | POLLERR | POLLNVAL)) != 0;
+}
+
+Q_CORE_EXPORT int qt_safe_poll(pollfd *fds, int nfds, int timeout,
+                               bool retry_eintr = true);
 
 // according to X/OPEN we have to define semun ourselves
 // we use prefix as on some systems sem.h will have it

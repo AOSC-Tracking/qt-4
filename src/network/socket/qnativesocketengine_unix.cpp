@@ -1068,48 +1068,40 @@ qint64 QNativeSocketEnginePrivate::nativeRead(char *data, qint64 maxSize)
 
 int QNativeSocketEnginePrivate::nativeSelect(int timeout, bool selectForRead) const
 {
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(socketDescriptor, &fds);
-
-    struct timeval tv;
-    tv.tv_sec = timeout / 1000;
-    tv.tv_usec = (timeout % 1000) * 1000;
-
-    int retval;
-    if (selectForRead)
-        retval = qt_safe_select(socketDescriptor + 1, &fds, 0, 0, timeout < 0 ? 0 : &tv);
-    else
-        retval = qt_safe_select(socketDescriptor + 1, 0, &fds, 0, timeout < 0 ? 0 : &tv);
-
-    return retval;
+    struct pollfd fd;
+    fd.fd = socketDescriptor;
+    if (selectForRead) {
+	fd.events = POLLIN;
+    } else {
+	fd.events = POLLOUT;
+    }
+    return qt_safe_poll(&fd, 1, timeout);
 }
 
 int QNativeSocketEnginePrivate::nativeSelect(int timeout, bool checkRead, bool checkWrite,
                        bool *selectForRead, bool *selectForWrite) const
 {
-    fd_set fdread;
-    FD_ZERO(&fdread);
+    struct pollfd fd;
+    fd.fd = socketDescriptor;
     if (checkRead)
-        FD_SET(socketDescriptor, &fdread);
-
-    fd_set fdwrite;
-    FD_ZERO(&fdwrite);
+	fd.events =  POLLIN;
+    else
+	fd.events = 0;
     if (checkWrite)
-        FD_SET(socketDescriptor, &fdwrite);
-
-    struct timeval tv;
-    tv.tv_sec = timeout / 1000;
-    tv.tv_usec = (timeout % 1000) * 1000;
-
-    int ret;
-    ret = qt_safe_select(socketDescriptor + 1, &fdread, &fdwrite, 0, timeout < 0 ? 0 : &tv);
-
+	fd.events |= POLLOUT;
+    int ret = qt_safe_poll(&fd, 1, timeout);
     if (ret <= 0)
-        return ret;
-    *selectForRead = FD_ISSET(socketDescriptor, &fdread);
-    *selectForWrite = FD_ISSET(socketDescriptor, &fdwrite);
-
+	return ret;
+    bool r = (fd.revents & (POLLIN | POLLHUP | POLLERR)) != 0;
+    bool w = (fd.revents & (POLLOUT | POLLHUP | POLLERR)) != 0;
+    // Emulate the return value from select(2).
+    ret = 0;
+    if (r)
+	++ret;
+    if (w)
+	++ret;
+    *selectForRead = r;
+    *selectForWrite = w;
     return ret;
 }
 

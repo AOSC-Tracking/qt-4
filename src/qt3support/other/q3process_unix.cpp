@@ -981,13 +981,10 @@ bool Q3Process::isRunning() const
 	// On heavy processing, the socket notifier for the sigchild might not
 	// have found time to fire yet.
 	if ( d->procManager && d->procManager->sigchldFd[1] < FD_SETSIZE ) {
-	    fd_set fds;
-	    struct timeval tv;
-	    FD_ZERO( &fds );
-	    FD_SET( d->procManager->sigchldFd[1], &fds );
-	    tv.tv_sec = 0;
-	    tv.tv_usec = 0;
-	    if ( ::select( d->procManager->sigchldFd[1]+1, &fds, 0, 0, &tv ) > 0 )
+	    pollfd fd;
+	    fd.fd = d->procManager->sigchldFd[1];
+	    fd.events = POLLIN;
+	    if ( qt_safe_poll(&fd, 1, 0, /* retry_eintr */ false) > 0 )
 		d->procManager->sigchldHnd( d->procManager->sigchldFd[1] );
 	}
 
@@ -1124,29 +1121,21 @@ void Q3Process::socketRead( int fd )
 	}
     }
 
-    if ( fd < FD_SETSIZE ) {
-	fd_set fds;
-	struct timeval tv;
-	FD_ZERO( &fds );
-	FD_SET( fd, &fds );
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	while ( ::select( fd+1, &fds, 0, 0, &tv ) > 0 ) {
-	    // prepare for the next round
-	    FD_ZERO( &fds );
-	    FD_SET( fd, &fds );
-	    // read data
-	    ba = new QByteArray( basize );
-	    n = ::read( fd, ba->data(), basize );
-	    if ( n > 0 ) {
-		ba->resize( n );
-		buffer->append( ba );
-		ba = 0;
-	    } else {
-		delete ba;
-		ba = 0;
-		break;
-	    }
+    pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    while (qt_safe_poll(&pfd, 1, 0)) {
+	// read data
+	ba = new QByteArray( basize );
+	n = ::read( fd, ba->data(), basize );
+	if ( n > 0 ) {
+	    ba->resize( n );
+	    buffer->append( ba );
+	    ba = 0;
+	} else {
+	    delete ba;
+	    ba = 0;
+	    break;
 	}
     }
 

@@ -56,10 +56,6 @@
 #include <qdebug.h>
 #include <qelapsedtimer.h>
 
-#ifdef Q_OS_VXWORKS
-#  include <selectLib.h>
-#endif
-
 #define QT_CONNECT_TIMEOUT 30000
 
 QT_BEGIN_NAMESPACE
@@ -520,32 +516,17 @@ bool QLocalSocket::waitForConnected(int msec)
     if (state() != ConnectingState)
         return (state() == ConnectedState);
 
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(d->connectingSocket, &fds);
-
-    timeval timeout;
-    timeout.tv_sec = msec / 1000;
-    timeout.tv_usec = (msec % 1000) * 1000;
-
-    // timeout can not be 0 or else select will return an error.
-    if (0 == msec)
-        timeout.tv_usec = 1000;
+    pollfd fd;
+    fd.fd = d->connectingSocket;
+    fd.events = POLLIN | POLLOUT;
 
     int result = -1;
     // on Linux timeout will be updated by select, but _not_ on other systems.
     QElapsedTimer timer;
+    int remaining = msec;
     timer.start();
-    while (state() == ConnectingState
-           && (-1 == msec || timer.elapsed() < msec)) {
-#ifdef Q_OS_SYMBIAN
-        // On Symbian, ready-to-write is signaled when non-blocking socket
-        // connect is finised. Is ready-to-read really used on other
-        // UNIX paltforms when using non-blocking AF_UNIX socket?
-        result = ::select(d->connectingSocket + 1, 0, &fds, 0, &timeout);
-#else
-        result = ::select(d->connectingSocket + 1, &fds, 0, 0, &timeout);
-#endif
+    while (state() == ConnectingState) {
+        result = qt_safe_poll(&fd, 1, remaining, /* retry_eintr */ false);
         if (-1 == result && errno != EINTR) {
             d->errorOccurred( QLocalSocket::UnknownSocketError,
                     QLatin1String("QLocalSocket::waitForConnected"));
@@ -553,6 +534,11 @@ bool QLocalSocket::waitForConnected(int msec)
         }
         if (result > 0)
             d->_q_connectToSocket();
+        if (msec >= 0) {
+            remaining = timer.elapsed() - msec;
+            if (remaining < 0)
+                break;
+        }
     }
 
     return (state() == ConnectedState);

@@ -88,7 +88,9 @@ bool qt_initIcu(const QString &localeString)
         QLibrary lib(QLatin1String("icui18n"), QLatin1String(U_ICU_VERSION_SHORT));
         lib.setLoadHints(QLibrary::ImprovedSearchHeuristics);
         if (!lib.load()) {
+#ifndef QT_NO_DEBUG
             qWarning() << "Unable to load library icui18n" << lib.errorString();
+#endif
             status = ErrorLoading;
             return false;
         }
@@ -118,7 +120,9 @@ bool qt_initIcu(const QString &localeString)
         QLibrary ucLib(QLatin1String("icuuc"), QLatin1String(U_ICU_VERSION_SHORT));
         ucLib.setLoadHints(QLibrary::ImprovedSearchHeuristics);
         if (!ucLib.load()) {
+#ifndef QT_NO_DEBUG
             qWarning() << "Unable to load library icuuc" << ucLib.errorString();
+#endif
             status = ErrorLoading;
             return false;
         }

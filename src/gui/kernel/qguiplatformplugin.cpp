@@ -165,8 +165,13 @@ QString QGuiPlatformPlugin::styleName()
     case DE_GNOME: {
         QStringList availableStyles = QStyleFactory::keys();
         // Set QGtkStyle for GNOME if available
+        QString adwaitaStyleKey = QString::fromLatin1("adwaita");
         QString gtkStyleKey = QString::fromLatin1("GTK+");
-        if (availableStyles.contains(gtkStyleKey)) {
+        if (availableStyles.contains(adwaitaStyleKey)) {
+            stylename = adwaitaStyleKey;
+            break;
+        }
+        else if (availableStyles.contains(gtkStyleKey)) {
             stylename = gtkStyleKey;
             break;
         }

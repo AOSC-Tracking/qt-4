@@ -675,6 +675,25 @@ QString QFileSystemEngine::homePath()
 {
     QString home = QFile::decodeName(qgetenv("HOME"));
     if (home.isEmpty())
+    {
+#if !defined(QT_NO_THREAD) && defined(_POSIX_THREAD_SAFE_FUNCTIONS) && !defined(Q_OS_OPENBSD)
+        int size_max = sysconf(_SC_GETPW_R_SIZE_MAX);
+        if (size_max == -1)
+            size_max = 1024;
+        QVarLengthArray<char, 1024> buf(size_max);
+#endif
+        struct passwd *pw = 0;
+        uid_t user_id = getuid();
+        pw = getpwuid(user_id);
+#if !defined(QT_NO_THREAD) && defined(_POSIX_THREAD_SAFE_FUNCTIONS) && !defined(Q_OS_OPENBSD)
+        struct passwd entry;
+        getpwuid_r(user_id, &entry, buf.data(), buf.size(), &pw);
+#else
+        pw = getpwuid(user_id);
+#endif
+        home = QFile::decodeName(QByteArray(pw->pw_dir));
+    }
+    if (home.isEmpty())
         home = rootPath();
     return QDir::cleanPath(home);
 }

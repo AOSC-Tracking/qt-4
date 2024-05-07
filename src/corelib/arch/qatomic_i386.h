@@ -115,8 +115,8 @@ inline bool QBasicAtomicInt::ref()
     asm volatile("lock\n"
                  "incl %0\n"
                  "setne %1"
-                 : "=m" (_q_value), "=qm" (ret)
-                 : "m" (_q_value)
+                 : "+m" (_q_value), "=qm" (ret)
+                 :
                  : "memory");
     return ret != 0;
 }
@@ -127,8 +127,8 @@ inline bool QBasicAtomicInt::deref()
     asm volatile("lock\n"
                  "decl %0\n"
                  "setne %1"
-                 : "=m" (_q_value), "=qm" (ret)
-                 : "m" (_q_value)
+                 : "+m" (_q_value), "=qm" (ret)
+                 :
                  : "memory");
     return ret != 0;
 }

@@ -3316,6 +3316,12 @@ MakefileGenerator::writePkgConfigFile()
         t << "Requires: " << requires << endl;
     }
 
+    // requires.private
+    const QString requires_private = project->values("QMAKE_PKGCONFIG_REQUIRES_PRIVATE").join(" ");
+    if (!requires_private.isEmpty()) {
+        t << "Requires.private: " << requires_private << endl;
+    }
+
     t << endl;
 }
 

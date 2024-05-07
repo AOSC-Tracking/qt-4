@@ -5,6 +5,12 @@ include(features.pri)
 
 # Uncomment this to enable Texture Mapper.
 # CONFIG += texmap
+#
+equals(QT_ARCH, s390)|equals(QT_ARCH, arm)|equals(QT_ARCH, mips)|equals(QT_ARCH, i386)|equals(QT_ARCH, i686)|equals(QT_ARCH, x86_64)|equals(QT_ARCH, powerpc64)|equals(QT_ARCH, powerpc) {
+    message("WebCore workaround for QtWebkit: do not build with -g, but with -g1")
+    QMAKE_CXXFLAGS_RELEASE -= -g
+    QMAKE_CXXFLAGS_RELEASE += -g1
+}
 
 QT *= network
 

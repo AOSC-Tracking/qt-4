@@ -1,6 +1,8 @@
 HEADERS += $$PWD/qsql_tds.h
 SOURCES += $$PWD/qsql_tds.cpp
 
+*-g++*: QMAKE_CXXFLAGS += -fno-strict-aliasing
+
 unix|win32-g++*: {
     LIBS += $$QT_LFLAGS_TDS
     !contains(LIBS, .*sybdb.*):LIBS += -lsybdb

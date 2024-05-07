@@ -3248,7 +3248,7 @@ int QTreeViewPrivate::itemHeight(int item) const
         return defaultItemHeight;
     if (viewItems.isEmpty())
         return 0;
-    const QModelIndex &index = viewItems.at(item).index;
+    QModelIndex index = viewItems.at(item).index;
     if (!index.isValid())
         return 0;
     int height = viewItems.at(item).height;

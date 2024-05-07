@@ -209,6 +209,8 @@ bool QLibraryPrivate::load_sys()
         for(int suffix = 0; retry && !pHnd && suffix < suffixes.size(); suffix++) {
             if (!prefixes.at(prefix).isEmpty() && name.startsWith(prefixes.at(prefix)))
                 continue;
+            if (path.isEmpty() && prefixes.at(prefix).contains(QLatin1Char('/')))
+                continue;
             if (!suffixes.at(suffix).isEmpty() && name.endsWith(suffixes.at(suffix)))
                 continue;
             if (loadHints & QLibrary::LoadArchiveMemberHint) {

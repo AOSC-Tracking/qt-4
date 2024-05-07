@@ -769,26 +769,18 @@ Q_OUTOFLINE_TEMPLATE void QList<T>::clear()
 template <typename T>
 Q_OUTOFLINE_TEMPLATE int QList<T>::removeAll(const T &_t)
 {
-    int index = indexOf(_t);
-    if (index == -1)
-        return 0;
-
+    detachShared();
     const T t = _t;
-    detach();
-
-    Node *i = reinterpret_cast<Node *>(p.at(index));
-    Node *e = reinterpret_cast<Node *>(p.end());
-    Node *n = i;
-    node_destruct(i);
-    while (++i != e) {
-        if (i->t() == t)
-            node_destruct(i);
-        else
-            *n++ = *i;
-    }
-
-    int removedCount = e - n;
-    d->end -= removedCount;
+    int removedCount=0, i=0;
+    Node *n;
+    while (i < p.size())
+        if ((n = reinterpret_cast<Node *>(p.at(i)))->t() == t) {
+            node_destruct(n);
+            p.remove(i);
+            ++removedCount;
+        } else {
+            ++i;
+        }
     return removedCount;
 }
 

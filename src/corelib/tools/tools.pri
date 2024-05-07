@@ -102,7 +102,15 @@ contains(QT_CONFIG, zlib):include($$PWD/../../3rdparty/zlib.pri)
 else:include($$PWD/../../3rdparty/zlib_dependency.pri)
 
 contains(QT_CONFIG,icu) {
-    SOURCES += tools/qlocale_icu.cpp
+    cpp11.name = cpp11
+    cpp11.input = SOURCES_CPP11
+    cpp11.dependency_type = TYPE_C
+    cpp11.variable_out = OBJECTS
+    cpp11.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_IN_BASE}$${first(QMAKE_EXT_OBJ)}
+    cpp11.commands = $${QMAKE_CXX} $(CXXFLAGS) -std=c++11 $(INCPATH) -c ${QMAKE_FILE_IN} -o ${QMAKE_FILE_OUT}
+    QMAKE_EXTRA_COMPILERS += cpp11
+
+    SOURCES_CPP11 += tools/qlocale_icu.cpp
     DEFINES += QT_USE_ICU
 }
 

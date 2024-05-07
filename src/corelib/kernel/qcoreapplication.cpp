@@ -2531,6 +2531,15 @@ QStringList QCoreApplication::libraryPaths()
             if (!app_libpaths->contains(installPathPlugins))
                 app_libpaths->append(installPathPlugins);
         }
+
+        // hack in support for kde4 plugin paths -- Rex
+        QString kde4PathPlugins = QLibraryInfo::location(QLibraryInfo::LibrariesPath) + QLatin1String("/kde4/plugins");
+        if (QFile::exists(kde4PathPlugins)) {
+            // Make sure we convert from backslashes to slashes.
+            //kde4PathPlugins = QDir(kde4PathPlugins).canonicalPath();
+            if (!app_libpaths->contains(kde4PathPlugins))
+                app_libpaths->append(kde4PathPlugins);
+        }
 #endif
 
         // If QCoreApplication is not yet instantiated,

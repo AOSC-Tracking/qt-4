@@ -503,18 +503,6 @@ void QGtkStylePrivate::initGtkWidgets() const
         return;
     }
 
-    static QString themeName;
-    if (!gtkWidgetMap()->contains("GtkWindow") && themeName.isEmpty()) {
-        themeName = getThemeName();
-
-        if (themeName == QLS("Qt") || themeName == QLS("Qt4")) {
-            // Due to namespace conflicts with Qt3 and obvious recursion with Qt4,
-            // we cannot support the GTK_Qt Gtk engine
-            qWarning("QGtkStyle cannot be used together with the GTK_Qt engine.");
-            return;
-        }
-    }
-
     if (QGtkStylePrivate::gtk_init) {
         // Gtk will set the Qt error handler so we have to reset it afterwards
         x11ErrorHandler qt_x_errhandler = XSetErrorHandler(0);

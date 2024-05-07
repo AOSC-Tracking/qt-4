@@ -30,8 +30,7 @@
 #include "RefPtr.h"
 #include <algorithm>
 
-extern "C" void g_object_unref(gpointer);
-extern "C" gpointer g_object_ref_sink(gpointer);
+#include <glib.h>
 
 namespace WTF {
 
